@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <title>Simple website</title>
+    <style>
+      .plan {
+        border: 2px solid #ccc;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .active-plan {
+        border: 2px solid #1d5693;
+        background-color: #007bff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="d-flex justify-content-center h-100 p-5">
+        <div class="card mb-4 box-shadow">
+          <div class="card-header text-center">
+            <h4 class="my-0 font-weight-normal">Best Deals</h4>
+          </div>
+          <div class="card-body">
+            <button
+              class="btn btn-lg btn-block btn-primary"
+              onclick="openModal()"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="results"></div>
+      <div>
+        {{gloabal.}}
+      </div>
+    </div>
+    <div class="modal" id="myModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Order Details</h4>
+            <button type="button" class="close" data-dismiss="modal">
+              &times;
+            </button>
+          </div>
+          <form id="myForm">
+            <div class="modal-body">
+              <input type="hidden" id="selectedPlan" name="selectedPlan" />
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="name"
+                  aria-describedby="name"
+                  placeholder="Enter name"
+                />
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  name="email"
+                  placeholder="Email"
+                />
+              </div>
+              <div class="form-group">
+                <label for="comments">Order Comments</label>
+                <textarea
+                  type="comments"
+                  class="form-control"
+                  name="comments"
+                  placeholder="Order Comments"
+                ></textarea>
+              </div>
+
+              <div class="container">
+                <input
+                  type="range"
+                  id="priceSlider"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value="0"
+                />
+                <div class="d-flex justify-content-between">
+                  <div class="plan" data-min="0" data-max="10">
+                    <h3>Plan 1</h3>
+                    <p>0-10 users</p>
+                  </div>
+                  <div class="plan" data-min="11" data-max="20">
+                    <h3>Plan 2</h3>
+                    <p>11-20 users</p>
+                  </div>
+                  <div class="plan" data-min="21" data-max="30">
+                    <h3>Plan 3</h3>
+                    <p>21-30 users</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      function openModal() {
+        const modalTitle = document.querySelector(".modal-title");
+        modalTitle.textContent = `My form`;
+        $("#myModal").modal("show");
+      }
+      const priceSlider = document.getElementById("priceSlider");
+      const plans = document.querySelectorAll(".plan");
+      const selectedPlanInput = document.getElementById("selectedPlan");
+      const myForm = document.getElementById("myForm");
+
+      priceSlider.addEventListener("input", updatePlanBasedOnSlider);
+
+      plans.forEach((plan) => {
+        plan.addEventListener("click", selectPlan);
+      });
+
+      function updatePlanBasedOnSlider() {
+        const sliderValue = parseInt(priceSlider.value, 10);
+
+        plans.forEach((plan) => {
+          const minRange = parseInt(plan.getAttribute("data-min"), 10);
+          const maxRange = parseInt(plan.getAttribute("data-max"), 10);
+
+          if (sliderValue >= minRange && sliderValue <= maxRange) {
+            plan.classList.add("active-plan");
+            selectedPlanInput.value = plan.querySelector("h3").textContent;
+          } else {
+            plan.classList.remove("active-plan");
+          }
+        });
+      }
+
+      function selectPlan(event) {
+        const selectedPlan = event.currentTarget;
+        plans.forEach((plan) => {
+          plan.classList.remove("active-plan");
+        });
+
+        selectedPlan.classList.add("active-plan");
+        const planName = selectedPlan.querySelector("h3").textContent;
+        selectedPlanInput.value = planName;
+
+        const minRange = parseInt(selectedPlan.getAttribute("data-min"), 10);
+        const maxRange = parseInt(selectedPlan.getAttribute("data-max"), 10);
+        const midpoint = (minRange + maxRange) / 2;
+        priceSlider.value = midpoint;
+      }
+
+      myForm.addEventListener("submit", onFormSubmit);
+						
+function onFormSubmit(event) {
+	event.preventDefault();
+	const data = new FormData(event.target);
+	const dataObject = Object.fromEntries(data.entries());
+	console.log(dataObject);
+    fetch("https://forms.maakeetoo.com/formapi/32", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(dataObject)
+          })
+              .then(response => response.json())
+              .then(data => {
+
+                  console.log(data);
+              })
+              .catch(error => {
+
+                  console.error(error);
+              });
+}
+
+const resultsContainer = document.getElementById("results");
+        let page = 1;
+        let loading = false;
+
+        function fetchAndDisplayUsers() {
+            loading = true;
+            fetch(`https://randomuser.me/api/?page=${page}&results=10`)
+                .then((response) => response.json())
+                .then((data) => {
+                    const usersHTML = data.results.map((user) => `
+                        <div class="user-card">
+                            <img src="${user.picture.medium}" alt="${user.name.first} ${user.name.last}">
+                            <h3>${user.name.first} ${user.name.last}</h3>
+                            <p>Email: ${user.email}</p>
+                        </div>
+                    `).join("");
+
+                    resultsContainer.innerHTML += usersHTML;
+                    page++;
+                    loading = false;
+                })
+                .catch((error) => {
+                    console.error(error);
+                    loading = false;
+                });
+        }
+
+        function checkScroll() {
+            const scrollY = window.scrollY || window.pageYOffset;
+            const windowHeight = window.innerHeight;
+            const contentHeight = resultsContainer.clientHeight;
+            const yOffset = 100;
+
+            if (scrollY + windowHeight + yOffset >= contentHeight && !loading) {
+                fetchAndDisplayUsers();
+            }
+        }
+
+        fetchAndDisplayUsers();
+        window.addEventListener("scroll", checkScroll);
+    
+    </script>
+  </body>
+</html>
