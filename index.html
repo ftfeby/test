@@ -43,9 +43,7 @@
         </div>
       </div>
       <div id="results"></div>
-      <div>
-        {{gloabal.}}
-      </div>
+      <div>{{gloabal.}}</div>
     </div>
     <div class="modal" id="myModal">
       <div class="modal-dialog">
@@ -113,6 +111,7 @@
                 </div>
               </div>
             </div>
+            <div id="formSubmitData"></div>
             <div class="modal-footer">
               <button type="submit" class="btn btn-primary">Submit</button>
             </div>
@@ -170,71 +169,75 @@
       }
 
       myForm.addEventListener("submit", onFormSubmit);
-						
-function onFormSubmit(event) {
-	event.preventDefault();
-	const data = new FormData(event.target);
-	const dataObject = Object.fromEntries(data.entries());
-	console.log(dataObject);
-    fetch("https://forms.maakeetoo.com/formapi/32", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify(dataObject)
+
+      function onFormSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const dataObject = Object.fromEntries(data.entries());
+        console.log(dataObject);
+        document.getElementById("formSubmitData").innerHTML = JSON.stringify(dataObject)
+        fetch("https://forms.maakeetoo.com/formapi/32", {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+            "Access-Control-Allow-Origin": "*",
+            AccessCode: "UKTUIQDJ1AIJU10CZ5ZO8TZC0",
+          },
+          body: JSON.stringify(dataObject),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
           })
-              .then(response => response.json())
-              .then(data => {
+          .catch((error) => {
+            console.error(error);
+          });
+      }
 
-                  console.log(data);
-              })
-              .catch(error => {
+      const resultsContainer = document.getElementById("results");
+      let page = 1;
+      let loading = false;
 
-                  console.error(error);
-              });
-}
-
-const resultsContainer = document.getElementById("results");
-        let page = 1;
-        let loading = false;
-
-        function fetchAndDisplayUsers() {
-            loading = true;
-            fetch(`https://randomuser.me/api/?page=${page}&results=10`)
-                .then((response) => response.json())
-                .then((data) => {
-                    const usersHTML = data.results.map((user) => `
+      function fetchAndDisplayUsers() {
+        loading = true;
+        fetch(`https://randomuser.me/api/?page=${page}&results=10`)
+          .then((response) => response.json())
+          .then((data) => {
+            const usersHTML = data.results
+              .map(
+                (user) => `
                         <div class="user-card">
                             <img src="${user.picture.medium}" alt="${user.name.first} ${user.name.last}">
                             <h3>${user.name.first} ${user.name.last}</h3>
                             <p>Email: ${user.email}</p>
                         </div>
-                    `).join("");
+                    `
+              )
+              .join("");
 
-                    resultsContainer.innerHTML += usersHTML;
-                    page++;
-                    loading = false;
-                })
-                .catch((error) => {
-                    console.error(error);
-                    loading = false;
-                });
+            resultsContainer.innerHTML += usersHTML;
+            page++;
+            loading = false;
+          })
+          .catch((error) => {
+            console.error(error);
+            loading = false;
+          });
+      }
+
+      function checkScroll() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const windowHeight = window.innerHeight;
+        const contentHeight = resultsContainer.clientHeight;
+        const yOffset = 100;
+
+        if (scrollY + windowHeight + yOffset >= contentHeight && !loading) {
+          fetchAndDisplayUsers();
         }
+      }
 
-        function checkScroll() {
-            const scrollY = window.scrollY || window.pageYOffset;
-            const windowHeight = window.innerHeight;
-            const contentHeight = resultsContainer.clientHeight;
-            const yOffset = 100;
-
-            if (scrollY + windowHeight + yOffset >= contentHeight && !loading) {
-                fetchAndDisplayUsers();
-            }
-        }
-
-        fetchAndDisplayUsers();
-        window.addEventListener("scroll", checkScroll);
-    
+      fetchAndDisplayUsers();
+      window.addEventListener("scroll", checkScroll);
     </script>
   </body>
 </html>
